@@ -58,8 +58,8 @@ class TestCapitalization:
         assert ag2latin("Α") == "A"
 
     def test_capital_word(self):
-        # Capital letter at start
-        assert ag2latin("Ἀχιλλεύς") == "ACHILLEUS"
+        # Capital letter at start (υ -> Y)
+        assert ag2latin("Ἀχιλλεύς") == "ACHILLEYS"
 
     def test_all_caps_input(self):
         # All uppercase Greek
@@ -105,6 +105,58 @@ class TestLongVowels:
 
     def test_omega(self):
         assert ag2latin("ω") == "Ō"
+
+
+class TestGammaNasals:
+    """Test gamma before velars becomes nasal (n)."""
+
+    def test_double_gamma(self):
+        # ἄγγελος -> ANGELOS (not AGGELOS)
+        assert ag2latin("ἄγγελος") == "ANGELOS"
+
+    def test_gamma_kappa(self):
+        # ἄγκυρα -> ANKYRA (υ -> Y)
+        assert ag2latin("ἄγκυρα") == "ANKYRA"
+
+    def test_gamma_chi(self):
+        # ἄγχω -> ANCHŌ
+        assert ag2latin("ἄγχω") == "ANCHŌ"
+
+    def test_gamma_xi(self):
+        # σφίγξ -> SPHINX (γξ -> NX, ξ already includes the "ks" sound)
+        assert ag2latin("σφίγξ") == "SPHINX"
+
+
+class TestRhoBreathing:
+    """Test rho with rough breathing in various positions."""
+
+    def test_rho_word_initial(self):
+        assert ag2latin("ῥίγος") == "RHIGOS"
+
+    def test_rho_mid_sentence(self):
+        # Rho with breathing mid-string should still be RH
+        assert ag2latin("καὶ ῥίγος") == "KAI RHIGOS"
+
+    def test_double_rho(self):
+        # Πύῤῥος -> PYRRHOS
+        assert ag2latin("Πύῤῥος") == "PYRRHOS"
+
+
+class TestIotaSubscript:
+    """Test iota subscript is preserved."""
+
+    def test_eta_iota_subscript(self):
+        # τῇ -> TĒI
+        assert ag2latin("τῇ") == "TĒI"
+
+    def test_omega_iota_subscript(self):
+        # ᾠδή -> ŌIDĒ
+        assert ag2latin("ᾠδή") == "ŌIDĒ"
+
+    def test_alpha_iota_subscript(self):
+        # ᾳ (alpha + iota subscript) -> AI
+        # Note: circumflex on alpha (ᾷ) doesn't add macron - known limitation
+        assert ag2latin("ᾳ") == "AI"
 
 
 class TestEdgeCases:

@@ -9,6 +9,7 @@ Date: 2023-10-05
 """
 
 import argparse
+import re
 import unicodedata
 
 
@@ -52,6 +53,8 @@ def ag2latin(text: str) -> str:
                 result.append(preceding)
             else:
                 result.append("H")
+        elif char == "\u0345":  # Combining Greek Ypogegrammeni (iota subscript)
+            result.append("I")
         elif char == "\u0313" or unicodedata.category(char) == "Mn":
             # Smooth breathing (U+0313) or other diacritical marks - skip
             continue
@@ -85,8 +88,8 @@ def ag2latin(text: str) -> str:
         "Ρ": "R",
         "Σ": "S",
         "Τ": "T",
-        "Υ": "U",
-        "Ϋ": "U",
+        "Υ": "Y",
+        "Ϋ": "Y",
         "Φ": "PH",
         "Χ": "CH",
         "Ψ": "PS",
@@ -108,9 +111,17 @@ def ag2latin(text: str) -> str:
     # Transliterate the text
     transliterated_text = text.translate(translation_table)
 
-    # If transliterated word begins with "HR", change it to "RH"
-    if transliterated_text.startswith("HR"):
-        transliterated_text = "RH" + transliterated_text[2:]
+    # Apply gamma nasal rule: γ before γ,κ,χ,ξ is pronounced /n/
+    transliterated_text = transliterated_text.replace("GG", "NG")
+    transliterated_text = transliterated_text.replace("GK", "NK")
+    transliterated_text = transliterated_text.replace("GCH", "NCH")
+    transliterated_text = transliterated_text.replace("GX", "NX")
+
+    # Fix double rho: ῤῥ → RRH (H goes at end, not middle)
+    transliterated_text = transliterated_text.replace("RHR", "RRH")
+
+    # Fix rho with rough breathing at word boundaries: HR → RH
+    transliterated_text = re.sub(r"(^|(?<=\s))HR", r"\1RH", transliterated_text)
 
     return transliterated_text
 
