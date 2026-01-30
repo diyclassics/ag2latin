@@ -1,6 +1,9 @@
 # Claude Code local configuration
 .claude/
 
+# Original file backup
+orig_ag2latin.py
+
 # Python
 __pycache__/
 *.py[cod]

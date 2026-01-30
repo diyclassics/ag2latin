@@ -8,9 +8,8 @@ License: MIT
 Date: 2023-10-05
 """
 
-import unicodedata
 import argparse
-from typing import List
+import unicodedata
 
 
 def ag2latin(text: str) -> str:
@@ -34,27 +33,27 @@ def ag2latin(text: str) -> str:
         'HELŌRIA'
 
         >>> ag2latin("Πηληϊάδεω")
-        'PĒLĒIĀDEŌ'
+        'PĒLĒIADEŌ'
 
         >>> ag2latin("ῥίγος")
         'RHIGOS'
     """
-
     # Normalize the text to decompose characters with diacritics
     text = unicodedata.normalize("NFD", text)
 
-    # If the second character is a rough breathing mark, move it to the first position
-    if len(text) > 1 and text[1] == "\u0314":  # Rough breathing (U+0314)
-        text = text[1] + text[0] + text[2:]
-
-    # Handle rough and smooth breathing marks and remove other diacritical marks in a single pass
+    # Handle breathing marks and remove other diacritical marks in a single pass
     result = []
     for char in text:
         if char == "\u0314":  # Rough breathing (U+0314)
-            result.append("H")
-        elif char == "\u0313":  # Smooth breathing (U+0313)
-            continue
-        elif unicodedata.category(char) == "Mn":  # Other diacritical marks
+            # Insert H before the preceding letter (breathing follows its letter in NFD)
+            if result:
+                preceding = result.pop()
+                result.append("H")
+                result.append(preceding)
+            else:
+                result.append("H")
+        elif char == "\u0313" or unicodedata.category(char) == "Mn":
+            # Smooth breathing (U+0313) or other diacritical marks - skip
             continue
         else:
             result.append(char)
@@ -93,16 +92,14 @@ def ag2latin(text: str) -> str:
         "Ψ": "PS",
         "Ω": "Ō",
         "ᾼ": "Ā",
-        "Ί": "Ī",
+        "Ί": "Ī",
         "Ῡ": "Ū",
-        "Ή": "Ē",
+        "Ή": "Ē",
         "ῌ": "ĒI",
         "ῼ": "ŌI",
-        "Ὼ": "ŌI",
-        "Ώ": "ŌI",
-        "ῌ": "ĒI",
-        "Ή": "ĒI",
-        "Ὴ": "ĒI",
+        "Ὼ": "Ō",
+        "Ώ": "Ō",
+        "Ὴ": "Ē",
     }
 
     # Create translation table
@@ -123,7 +120,10 @@ def main():
         description="Transliterate Ancient Greek text to Latin."
     )
     parser.add_argument(
-        "text", type=str, nargs="?", help="The Ancient Greek text to be transliterated."
+        "text",
+        type=str,
+        nargs="?",
+        help="The Ancient Greek text to be transliterated.",
     )
     args = parser.parse_args()
 
@@ -133,7 +133,7 @@ def main():
         print(f"{args.text} -> {latin_text}")
     else:
         # List of example Greek texts
-        examples: List[str] = [
+        examples: list[str] = [
             "μῆνιν",
             "θεὰ",
             "Αχιλῆος",
